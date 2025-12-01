@@ -1,0 +1,53 @@
+{
+  "model_name": "DeepSeek-V3.2",
+  "model_organization": "DeepSeek",
+  "submitting_organization": "DeepSeek",
+  "submission_date": "2025-12-01",
+  "contact_info": {
+    "email": "research@deepseek.com"
+  },
+  "is_new": true,
+  "trajectories_available": false,
+  "references": [
+    {
+      "title": "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models",
+      "url": "https://cas-bridge.xethub.hf.co/xet-bridge-us/692cfec93b25b81d09307b94/2d0aa38511b9df084d12a00fe04a96595496af772cb766c516c4e6aee1e21246?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20251201%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251201T163912Z&X-Amz-Expires=3600&X-Amz-Signature=0ab05b7137a78dbfab76b0037d4700cb5dc1f15c64e1365c773566191b4e3c74&X-Amz-SignedHeaders=host&X-Xet-Cas-Uid=public&response-content-disposition=inline%3B+filename*%3DUTF-8%27%27paper.pdf%3B+filename%3D%22paper.pdf%22%3B&response-content-type=application%2Fpdf&x-id=GetObject&Expires=1764610752&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc2NDYxMDc1Mn19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2FzLWJyaWRnZS54ZXRodWIuaGYuY28veGV0LWJyaWRnZS11cy82OTJjZmVjOTNiMjViODFkMDkzMDdiOTQvMmQwYWEzODUxMWI5ZGYwODRkMTJhMDBmZTA0YTk2NTk1NDk2YWY3NzJjYjc2NmM1MTZjNGU2YWVlMWUyMTI0NioifV19&Signature=adl5mcwbrUCEHlcSI4nGo6EVnMSYNFL6spqaVWsh0LdQ94ZPzqc7TTq9kxog2GtAPEfBQlC1PzqxtSNHjs6rm584cd%7E%7E8LTH6Mk-4fmgcAaRwxbq0m86%7E9vamSlgYQ2uyA5r8Hi7OpDmR1Mhfre%7E-r3LxbFSCMyd6kKxWwNmAEV15ojsse6Q6QuWIfOs2xiApelsUHC8ckcOA-y-EoJv3re-%7E4JDhClGZE7GV%7EHQYSzea6kQx84zKtuwOWoFaCfgo347eGVI%7Ea3lCnIR8ukG2rFBkAiGcdWuPt3JuQK%7EY7YEjUXh-OX7r4npv7s8ADePICwVAOs3vlHx9qami32YDQ__&Key-Pair-Id=K2L8F4GPSG1IFC",
+      "type": "technical_report"
+    }
+  ],
+  "results": {
+    "retail": {
+      "pass_1": 81.1,
+      "pass_2": null,
+      "pass_3": null,
+      "pass_4": null,
+      "cost": null
+    },
+    "airline": {
+      "pass_1": 63.8,
+      "pass_2": null,
+      "pass_3": null,
+      "pass_4": null,
+      "cost": null
+    },
+    "telecom": {
+      "pass_1": 96.2,
+      "pass_2": null,
+      "pass_3": null,
+      "pass_4": null,
+      "cost": null
+    }
+  },
+  "methodology": {
+    "evaluation_date": "2025-12-01",
+    "tau2_bench_version": "v0.1.3",
+    "user_simulator": "DeepSeek-V3.2",
+    "notes": "",
+    "verification": {
+      "modified_prompts": null,
+      "omitted_questions": null,
+      "details": "Unverified submission - results from technical report, no trajectory data available, exact evaluation methodology not specified"
+    }
+  }
+}
+

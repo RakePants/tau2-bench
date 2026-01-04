@@ -1,5 +1,10 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 # SIMULATION
 DEFAULT_MAX_STEPS = 200
 DEFAULT_MAX_ERRORS = 10

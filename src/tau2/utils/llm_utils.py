@@ -205,7 +205,7 @@ def generate(
     tools = [tool.openai_schema for tool in tools] if tools else None
     if tools and tool_choice is None:
         tool_choice = "auto"
-        
+
     print(f"KWARGS: {kwargs}")
     try:
         response = completion(

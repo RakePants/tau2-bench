@@ -30,7 +30,7 @@ from tau2.data_model.message import (
 )
 from tau2.environment.tool import Tool
 
-# litellm._turn_on_debug()
+litellm._turn_on_debug()
 
 if USE_LANGFUSE:
     # set callbacks
@@ -205,6 +205,8 @@ def generate(
     tools = [tool.openai_schema for tool in tools] if tools else None
     if tools and tool_choice is None:
         tool_choice = "auto"
+        
+    print(f"KWARGS: {kwargs}")
     try:
         response = completion(
             model=model,
@@ -214,6 +216,7 @@ def generate(
             **kwargs,
         )
     except Exception as e:
+        print(e)
         logger.error(e)
         raise e
     cost = get_response_cost(response)

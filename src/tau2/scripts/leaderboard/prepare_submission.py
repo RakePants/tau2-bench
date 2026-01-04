@@ -25,6 +25,10 @@ from tau2.utils.io_utils import expand_paths
 from tau2.utils.utils import get_dict_hash
 
 
+def safe_pct(val):
+    return val * 100 if val is not None else None
+
+
 def check_and_load_submission_data(
     submission_dir: str,
 ) -> tuple[bool, str, SubmissionData]:
@@ -333,10 +337,10 @@ def prepare_submission(
             domain_metrics[domain] = metrics
             # Create DomainResults object
             domain_results[domain] = DomainResults(
-                pass_1=metrics.pass_hat_ks.get(1) * 100,
-                pass_2=metrics.pass_hat_ks.get(2) * 100,
-                pass_3=metrics.pass_hat_ks.get(3) * 100,
-                pass_4=metrics.pass_hat_ks.get(4) * 100,
+                pass_1=safe_pct(metrics.pass_hat_ks.get(1)),
+                pass_2=safe_pct(metrics.pass_hat_ks.get(2)),
+                pass_3=safe_pct(metrics.pass_hat_ks.get(3)),
+                pass_4=safe_pct(metrics.pass_hat_ks.get(4)),
                 cost=metrics.avg_agent_cost,
             )
 

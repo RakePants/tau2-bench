@@ -30,7 +30,7 @@ from tau2.data_model.message import (
 )
 from tau2.environment.tool import Tool
 
-litellm._turn_on_debug()
+# litellm._turn_on_debug()
 
 if USE_LANGFUSE:
     # set callbacks
@@ -92,6 +92,7 @@ def get_response_cost(response: ModelResponse) -> float:
     response.model = _parse_ft_model_name(
         response.model
     )  # FIXME: Check Litellm, passing the model to completion_cost doesn't work.
+    # print(response)
     try:
         cost = completion_cost(completion_response=response)
     except Exception as e:
@@ -206,7 +207,7 @@ def generate(
     if tools and tool_choice is None:
         tool_choice = "auto"
 
-    print(f"KWARGS: {kwargs}")
+    # print(f"KWARGS: {kwargs}")
     try:
         response = completion(
             model=model,
@@ -216,7 +217,7 @@ def generate(
             **kwargs,
         )
     except Exception as e:
-        print(e)
+        # print(e)
         logger.error(e)
         raise e
     cost = get_response_cost(response)

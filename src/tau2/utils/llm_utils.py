@@ -234,16 +234,25 @@ def generate(
         "The response should be an assistant message"
     )
     content = response.message.content
+
     tool_calls = response.message.tool_calls or []
-    tool_calls = [
-        ToolCall(
-            id=tool_call.id,
-            name=tool_call.function.name,
-            arguments=json.loads(tool_call.function.arguments),
+    parsed_tool_calls = []
+    for tool_call in tool_calls:
+        try:
+            args = json.loads(tool_call.function.arguments)
+        except json.JSONDecodeError as e:
+            logger.warning(
+                f"Warning: failed to parse tool arguments: {tool_call.function.arguments!r} ({e})"
+            )
+            args = {}
+        parsed_tool_calls.append(
+            ToolCall(
+                id=tool_call.id,
+                name=tool_call.function.name,
+                arguments=args,
+            )
         )
-        for tool_call in tool_calls
-    ]
-    tool_calls = tool_calls or None
+    tool_calls = parsed_tool_calls or None
 
     message = AssistantMessage(
         role="assistant",

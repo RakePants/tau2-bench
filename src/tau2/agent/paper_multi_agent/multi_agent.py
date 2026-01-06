@@ -1,13 +1,3 @@
-"""
-Multi-Agent System for Telecom Domain.
-
-This module implements a multi-agent architecture where:
-1. A RouterAgent determines the issue type from the FULL conversation history
-2. Specialized agents (Service, MobileData, MMS) handle their respective issues
-3. All agents share the same tools but have different specialized policies
-4. ALL agents receive the COMPLETE base policy (main_policy.md + device actions)
-"""
-
 from copy import deepcopy
 from enum import Enum
 from typing import List, Optional
@@ -282,8 +272,7 @@ class PaperMultiAgent(LocalAgent[MultiAgentState]):
         """
         Generate the next message from the multi-agent system.
 
-        On first user message, routes to the appropriate specialized agent.
-        Subsequent messages are handled by the routed agent.
+        Routes on EVERY user message to handle ambiguous cases.
 
         Args:
             message: User message or tool response.
@@ -298,13 +287,24 @@ class PaperMultiAgent(LocalAgent[MultiAgentState]):
         else:
             state.messages.append(message)
 
-        # Route on first user message
-        if not state.is_routed:
+        # Route on every user message (not tool responses)
+        is_user_message = hasattr(message, "role") and message.role == "user"
+
+        if is_user_message:
             # Convert messages for router (full conversation context)
             conversation_for_router = self._convert_messages_for_router(state.messages)
 
             # Route to specialized agent based on full conversation
             issue_type = self._route_to_agent(conversation_for_router)
+
+            # Log if agent changed
+            if state.current_agent is not None and state.current_agent != issue_type:
+                logger.debug(
+                    f"Re-routed from {state.current_agent.value} to {issue_type.value}"
+                )
+            else:
+                logger.debug(f"Routed to {issue_type.value} agent")
+
             state.current_agent = issue_type
             state.is_routed = True
 
@@ -313,8 +313,6 @@ class PaperMultiAgent(LocalAgent[MultiAgentState]):
             state.system_messages = [
                 SystemMessage(role="system", content=system_prompt)
             ]
-
-            logger.info(f"Routed to {issue_type.value} agent")
 
         # Generate response using the specialized agent
         messages = state.system_messages + state.messages

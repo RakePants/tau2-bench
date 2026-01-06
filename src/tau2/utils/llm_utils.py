@@ -261,6 +261,7 @@ def generate(
         cost=cost,
         usage=usage,
         raw_data=response.to_dict(),
+        metadata={}
     )
     return message
 

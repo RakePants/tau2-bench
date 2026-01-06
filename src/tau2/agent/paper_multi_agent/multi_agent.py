@@ -327,9 +327,9 @@ class PaperMultiAgent(LocalAgent[MultiAgentState]):
         )
 
         # Add marker for what agent worked on this turn
-        if assistant_message.raw_data is None:
-            assistant_message.raw_data = {}
-            assistant_message.raw_data["generated_by_agent"] = state.current_agent.value
+        if assistant_message.metadata is None:
+            assistant_message.metadata = {}
+        assistant_message.metadata["generated_by_agent"] = state.current_agent.value
 
         state.messages.append(assistant_message)
         return assistant_message, state

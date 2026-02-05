@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from tau2.agent.base import BaseAgent
 from tau2.agent.llm_agent import LLMAgent, LLMGTAgent, LLMSoloAgent
-from tau2.agent.paper_multi_agent import PaperMultiAgent
+from tau2.agent.mas_3 import PaperMultiAgent
 from tau2.data_model.tasks import Task
 from tau2.domains.airline.environment import (
     get_environment as airline_domain_get_environment,

@@ -10,7 +10,7 @@ from tau2.agent.base import (
     ValidAgentInputMessage,
     is_valid_agent_history_message,
 )
-from tau2.agent.paper_multi_agent.instructions import (
+from tau2.agent.mas_3.instructions import (
     MMS_ISSUE_AGENT_IDENTITY,
     MMS_ISSUE_POLICY,
     MOBILE_DATA_ISSUE_AGENT_IDENTITY,

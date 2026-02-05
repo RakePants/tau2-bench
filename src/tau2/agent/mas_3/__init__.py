@@ -16,7 +16,7 @@ Usage:
     agent = PaperMultiAgent(tools=tools, domain_policy=policy, llm="gpt-4")
 """
 
-from tau2.agent.paper_multi_agent.multi_agent import (
+from tau2.agent.mas_3.multi_agent import (
     PaperMultiAgent,
     MultiAgentState,
     IssueType,

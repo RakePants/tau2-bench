@@ -8,7 +8,7 @@ from typing import Optional
 from loguru import logger
 
 from tau2.agent.llm_agent import LLMAgent, LLMGTAgent, LLMSoloAgent
-from tau2.agent.paper_multi_agent import PaperMultiAgent
+from tau2.agent.mas_3 import PaperMultiAgent
 from tau2.data_model.simulation import (
     AgentInfo,
     Info,

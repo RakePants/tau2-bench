@@ -9,6 +9,7 @@ from loguru import logger
 
 from tau2.agent.llm_agent import LLMAgent, LLMGTAgent, LLMSoloAgent
 from tau2.agent.mas_3 import PaperMultiAgent
+from tau2.agent.mav_soft import MAVSoftAgent
 from tau2.data_model.simulation import (
     AgentInfo,
     Info,
@@ -484,6 +485,13 @@ def run_task(
             domain_policy=environment.get_policy(),
         )
     elif issubclass(AgentConstructor, PaperMultiAgent):
+        agent = AgentConstructor(
+            tools=environment.get_tools(),
+            domain_policy=environment.get_policy(),
+            llm=llm_agent,
+            llm_args=llm_args_agent,
+        )
+    elif issubclass(AgentConstructor, MAVSoftAgent):
         agent = AgentConstructor(
             tools=environment.get_tools(),
             domain_policy=environment.get_policy(),

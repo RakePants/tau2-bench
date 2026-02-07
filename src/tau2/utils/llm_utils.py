@@ -208,6 +208,20 @@ def generate(
         tool_choice = "auto"
 
     # print(f"KWARGS: {kwargs}")
+
+    # print(f"\n{'=' * 60} LLM CALL {'=' * 60}")
+    # for i, msg in enumerate(litellm_messages):
+    #     role = msg.get("role", "?")
+    #     content = msg.get("content", "")
+    #     tc = msg.get("tool_calls")
+    #     tcid = msg.get("tool_call_id")
+    #     print(f"[{i}] {role}: {content[:200] if content else ''}")
+    #     if tc:
+    #         print(f"     tool_calls: {tc}")
+    #     if tcid:
+    #         print(f"     tool_call_id: {tcid}")
+    # print(f"{'=' * 130}\n")
+
     try:
         response = completion(
             model=model,
@@ -261,7 +275,7 @@ def generate(
         cost=cost,
         usage=usage,
         raw_data=response.to_dict(),
-        metadata={}
+        metadata={},
     )
     return message
 

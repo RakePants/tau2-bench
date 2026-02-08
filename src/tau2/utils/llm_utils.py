@@ -215,7 +215,7 @@ def generate(
     #     content = msg.get("content", "")
     #     tc = msg.get("tool_calls")
     #     tcid = msg.get("tool_call_id")
-    #     print(f"[{i}] {role}: {content[:200] if content else ''}")
+    #     print(f"[{i}] {role}: {content if content else ''}")
     #     if tc:
     #         print(f"     tool_calls: {tc}")
     #     if tcid:

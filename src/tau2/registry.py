@@ -6,7 +6,8 @@ from pydantic import BaseModel
 
 from tau2.agent.base import BaseAgent
 from tau2.agent.llm_agent import LLMAgent, LLMGTAgent, LLMSoloAgent
-from tau2.agent.mas_3 import PaperMultiAgent
+from tau2.agent.mas_3 import Mas3Agent
+from tau2.agent.mav_hard import MAVHardAgent
 from tau2.agent.mav_soft import MAVSoftAgent
 from tau2.data_model.tasks import Task
 from tau2.domains.airline.environment import (
@@ -211,8 +212,9 @@ try:
     registry.register_agent(LLMAgent, "llm_agent")
     registry.register_agent(LLMGTAgent, "llm_agent_gt")
     registry.register_agent(LLMSoloAgent, "llm_agent_solo")
-    registry.register_agent(PaperMultiAgent, "paper_multi_agent")
+    registry.register_agent(Mas3Agent, "paper_multi_agent")
     registry.register_agent(MAVSoftAgent, "mav_soft")
+    registry.register_agent(MAVHardAgent, "mav_hard")
 
     registry.register_domain(mock_domain_get_environment, "mock")
     registry.register_tasks(mock_domain_get_tasks, "mock")

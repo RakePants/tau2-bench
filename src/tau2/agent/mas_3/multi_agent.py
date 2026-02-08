@@ -97,7 +97,7 @@ def build_system_prompt(issue_type: IssueType) -> str:
 """.strip()
 
 
-class PaperMultiAgent(LocalAgent[MultiAgentState]):
+class Mas3Agent(LocalAgent[MultiAgentState]):
     """
     Multi-agent system for telecom customer service.
 

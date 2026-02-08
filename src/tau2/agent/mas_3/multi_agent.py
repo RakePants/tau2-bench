@@ -27,6 +27,7 @@ from tau2.data_model.message import (
     Message,
     MultiToolMessage,
     SystemMessage,
+    UserMessage,
 )
 from tau2.environment.tool import Tool
 from tau2.utils.llm_utils import generate
@@ -106,7 +107,7 @@ class Mas3Agent(LocalAgent[MultiAgentState]):
 
     The router analyzes the FULL conversation history to make accurate decisions.
 
-    3 specialized agents:
+    Specialized agents:
     - ServiceIssueAgent: Handles no service/connectivity issues
     - MobileDataIssueAgent: Handles mobile data/slow internet issues
     - MMSIssueAgent: Handles MMS/picture messaging issues
@@ -157,8 +158,8 @@ class Mas3Agent(LocalAgent[MultiAgentState]):
         router_user_message = create_router_user_message(conversation_history)
 
         router_messages = [
-            {"role": "system", "content": get_router_system_prompt()},
-            {"role": "user", "content": router_user_message},
+            SystemMessage(role="system", content=get_router_system_prompt()),
+            UserMessage(role="user", content=router_user_message),
         ]
 
         try:

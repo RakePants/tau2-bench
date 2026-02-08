@@ -6,11 +6,12 @@ from pydantic import BaseModel
 
 from tau2.agent.base import BaseAgent
 from tau2.agent.llm_agent import LLMAgent, LLMGTAgent, LLMSoloAgent
-from tau2.agent.map_adaptive import MAPAdaptiveAgent
-from tau2.agent.map_static import MAPStaticAgent
 from tau2.agent.mas_3 import Mas3Agent
-from tau2.agent.mav_hard import MAVHardAgent
 from tau2.agent.mav_soft import MAVSoftAgent
+from tau2.agent.mav_hard import MAVHardAgent
+from tau2.agent.map_static import MAPStaticAgent
+from tau2.agent.map_adaptive import MAPAdaptiveAgent
+from tau2.agent.mas_2 import MAS2Agent
 from tau2.data_model.tasks import Task
 from tau2.domains.airline.environment import (
     get_environment as airline_domain_get_environment,
@@ -219,6 +220,7 @@ try:
     registry.register_agent(MAVHardAgent, "mav_hard")
     registry.register_agent(MAPStaticAgent, "map_static")
     registry.register_agent(MAPAdaptiveAgent, "map_adaptive")
+    registry.register_agent(MAS2Agent, "mas_2")
 
     registry.register_domain(mock_domain_get_environment, "mock")
     registry.register_tasks(mock_domain_get_tasks, "mock")

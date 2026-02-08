@@ -106,7 +106,7 @@ class Mas3Agent(LocalAgent[MultiAgentState]):
 
     The router analyzes the FULL conversation history to make accurate decisions.
 
-    Specialized agents:
+    3 specialized agents:
     - ServiceIssueAgent: Handles no service/connectivity issues
     - MobileDataIssueAgent: Handles mobile data/slow internet issues
     - MMSIssueAgent: Handles MMS/picture messaging issues

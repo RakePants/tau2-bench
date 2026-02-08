@@ -316,6 +316,21 @@ class MAPStaticAgent(LocalAgent[MAPStaticState]):
         # 3. Call Executor
         proposed = self._call_executor(state)
 
+        # Safety net: if Executor produces empty message, fall back
+        if not proposed.content and not (
+            proposed.tool_calls and len(proposed.tool_calls) > 0
+        ):
+            logger.warning(
+                "Executor produced empty message. Falling back to safe response."
+            )
+            proposed = AssistantMessage(
+                role="assistant",
+                content="I apologize, could you please repeat your question or provide more details so I can assist you?",
+                cost=proposed.cost,
+                usage=proposed.usage,
+                metadata={},
+            )
+
         # 4. Finalize: add metadata and commit to state
         if proposed.metadata is None:
             proposed.metadata = {}

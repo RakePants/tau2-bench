@@ -215,7 +215,7 @@ try:
     registry.register_agent(LLMAgent, "llm_agent")
     registry.register_agent(LLMGTAgent, "llm_agent_gt")
     registry.register_agent(LLMSoloAgent, "llm_agent_solo")
-    registry.register_agent(Mas3Agent, "paper_multi_agent")
+    registry.register_agent(Mas3Agent, "mas_3")
     registry.register_agent(MAVSoftAgent, "mav_soft")
     registry.register_agent(MAVHardAgent, "mav_hard")
     registry.register_agent(MAPStaticAgent, "map_static")

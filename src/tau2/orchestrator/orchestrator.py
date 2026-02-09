@@ -21,7 +21,12 @@ from tau2.data_model.tasks import EnvFunctionCall, InitializationData, Task
 from tau2.environment.environment import Environment, EnvironmentInfo
 from tau2.user.base import BaseUser, UserError, is_valid_user_history_message
 from tau2.user.user_simulator import DummyUser, UserSimulator, UserState
-from tau2.utils.llm_utils import get_cost
+from tau2.utils.llm_utils import (
+    get_agent_token_usage,
+    get_cost,
+    get_llm_call_counts,
+    reset_llm_call_counter,
+)
 from tau2.utils.utils import format_time, get_now
 
 
@@ -131,6 +136,11 @@ class Orchestrator:
         self.from_role: Optional[Role] = None
         self.to_role: Optional[Role] = None
         self.message: Optional[Message] = None
+        # Timing tracking for agent response segments
+        self._agent_response_start: Optional[float] = None
+        self._agent_response_times: list[float] = []
+        self._user_wait_total: float = 0.0
+        self._user_wait_start: Optional[float] = None
 
     def initialize(self):
         """
@@ -163,9 +173,9 @@ class Orchestrator:
                 isinstance(self.agent, LLMSoloAgent)
                 or self.agent.__class__.__name__ == "GymAgent"
             ), "Agent must be a LLMSoloAgent or GymAgent in solo mode"
-            assert isinstance(
-                self.user, DummyUser
-            ), "User must be a DummyUser in solo mode"
+            assert isinstance(self.user, DummyUser), (
+                "User must be a DummyUser in solo mode"
+            )
 
         # Initialize Environment state
         self._initialize_environment(
@@ -309,9 +319,7 @@ class Orchestrator:
                     self.to_role = Role.ENV
                     self.done = self.agent.is_stop(first_message)
                     if self.done:
-                        self.to_role = (
-                            Role.USER
-                        )  # FIXIT: For now, we assume last message cannot be to the environment
+                        self.to_role = Role.USER  # FIXIT: For now, we assume last message cannot be to the environment
                         self.termination_reason = TerminationReason.AGENT_STOP
         if self.validate_communication:
             self.check_communication_error()
@@ -392,7 +400,17 @@ class Orchestrator:
         """
         start_time = get_now()
         start = time.perf_counter()
+        # Reset LLM call counter for this thread
+        reset_llm_call_counter()
         self.initialize()
+        # Start tracking agent work from the beginning
+        # (agent sends first message, then user responds, then agent works)
+        if self.to_role == Role.USER:
+            # Agent has already produced first message, work segment started at init
+            self._agent_response_start = time.perf_counter()
+        elif self.to_role == Role.ENV:
+            # Solo mode: agent made tool call, agent is working
+            self._agent_response_start = time.perf_counter()
         while not self.done:
             self.step()
             # Checking for maximum steps and errors only if the last message is not to the environment
@@ -404,6 +422,13 @@ class Orchestrator:
             if self.num_errors >= self.max_errors and self.to_role != Role.ENV:
                 self.done = True
                 self.termination_reason = TerminationReason.TOO_MANY_ERRORS
+
+        # Close any open agent work segment
+        if self._agent_response_start is not None:
+            segment = time.perf_counter() - self._agent_response_start
+            self._agent_response_times.append(segment)
+            self._agent_response_start = None
+
         # Send stop signal to the agent, user, and environment
         has_error = self.termination_reason in [
             TerminationReason.USER_ERROR,
@@ -431,6 +456,16 @@ class Orchestrator:
             agent_cost, user_cost = None, None
         else:
             agent_cost, user_cost = res
+
+        # Compute resource metrics
+        agent_usage = get_agent_token_usage(messages)
+        total_llm_calls, user_llm_calls = get_llm_call_counts()
+        agent_llm_calls = total_llm_calls - user_llm_calls
+
+        num_user_turns = sum(1 for m in messages if isinstance(m, UserMessage))
+        num_tool_calls = sum(1 for m in messages if isinstance(m, ToolMessage))
+        agent_active_time = duration - self._user_wait_total
+
         simulation_run = SimulationRun(
             id=str(uuid.uuid4()),
             task_id=self.task.id,
@@ -443,6 +478,17 @@ class Orchestrator:
             agent_cost=agent_cost,
             messages=messages,
             seed=self.seed,
+            # Resource metrics
+            agent_total_tokens=agent_usage["total_tokens"],
+            agent_completion_tokens=agent_usage["completion_tokens"],
+            agent_prompt_tokens=agent_usage["prompt_tokens"],
+            agent_llm_calls=agent_llm_calls,
+            num_user_turns=num_user_turns,
+            num_tool_calls=num_tool_calls,
+            agent_response_times=self._agent_response_times
+            if self._agent_response_times
+            else None,
+            agent_active_time=agent_active_time,
         )
         return simulation_run
 
@@ -463,9 +509,18 @@ class Orchestrator:
         )
         # AGENT/ENV -> USER
         if self.from_role in [Role.AGENT, Role.ENV] and self.to_role == Role.USER:
+            # Agent work segment ends when control goes to user
+            if self._agent_response_start is not None:
+                segment = time.perf_counter() - self._agent_response_start
+                self._agent_response_times.append(segment)
+                self._agent_response_start = None
+            # User wait starts
+            user_wait_start = time.perf_counter()
             user_msg, self.user_state = self.user.generate_next_message(
                 self.message, self.user_state
             )
+            # User wait ends
+            self._user_wait_total += time.perf_counter() - user_wait_start
             user_msg.validate()
             if UserSimulator.is_stop(user_msg):
                 self.done = True
@@ -477,10 +532,16 @@ class Orchestrator:
                 self.to_role = Role.ENV
             else:
                 self.to_role = Role.AGENT
+                # Agent work segment starts when user sends text to agent
+                self._agent_response_start = time.perf_counter()
         # USER/ENV -> AGENT
         elif (
             self.from_role == Role.USER or self.from_role == Role.ENV
         ) and self.to_role == Role.AGENT:
+            # If agent_work_start is not set (e.g. first call from env after init),
+            # start tracking now
+            if self._agent_response_start is None:
+                self._agent_response_start = time.perf_counter()
             agent_msg, self.agent_state = self.agent.generate_next_message(
                 self.message, self.agent_state
             )
@@ -493,12 +554,15 @@ class Orchestrator:
             self.from_role = Role.AGENT
             if agent_msg.is_tool_call():
                 self.to_role = Role.ENV
+                # Agent work continues (tool call -> env -> back to agent)
             else:
                 self.to_role = Role.USER
                 # In solo mode, there is no user, so if the message is not a tool call and not a stop, then we end and report an agent error
                 if self.solo_mode and not self.agent.is_stop(agent_msg):
                     self.done = True
                     self.termination_reason = TerminationReason.AGENT_ERROR
+                # Agent work segment will end at the top of next step
+                # when we enter AGENT/ENV -> USER branch
         # AGENT/USER -> ENV
         elif self.from_role in [Role.AGENT, Role.USER] and self.to_role == Role.ENV:
             if not self.message.is_tool_call():
@@ -509,9 +573,9 @@ class Orchestrator:
                 if tool_msg.error:
                     self.num_errors += 1
                 tool_msgs.append(tool_msg)
-            assert len(self.message.tool_calls) == len(
-                tool_msgs
-            ), "Number of tool calls and tool messages should be the same"
+            assert len(self.message.tool_calls) == len(tool_msgs), (
+                "Number of tool calls and tool messages should be the same"
+            )
             self.trajectory.extend(tool_msgs)
             if (
                 len(tool_msgs) > 1

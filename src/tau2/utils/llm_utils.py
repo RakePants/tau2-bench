@@ -1,5 +1,6 @@
 import json
 import re
+import threading
 from typing import Any, Optional
 
 import litellm
@@ -29,6 +30,45 @@ from tau2.data_model.message import (
     UserMessage,
 )
 from tau2.environment.tool import Tool
+
+# ---------------------------------------------------------------------------
+# Thread-local LLM call counter
+# ---------------------------------------------------------------------------
+_llm_call_counter = threading.local()
+
+
+def reset_llm_call_counter() -> None:
+    """Reset the per-thread LLM call counter."""
+    _llm_call_counter.total = 0
+    _llm_call_counter.user = 0
+
+
+def get_llm_call_counts() -> tuple[int, int]:
+    """Return (total_calls, user_calls) for the current thread."""
+    total = getattr(_llm_call_counter, "total", 0)
+    user = getattr(_llm_call_counter, "user", 0)
+    return total, user
+
+
+def _increment_llm_call_counter() -> None:
+    """Increment total LLM call count for the current thread."""
+    _llm_call_counter.total = getattr(_llm_call_counter, "total", 0) + 1
+
+
+def mark_next_generate_as_user() -> None:
+    """Mark that the next generate() call is from the user simulator.
+
+    This should be called right before the user simulator calls generate().
+    """
+    _llm_call_counter._next_is_user = True
+
+
+def _check_and_increment_user_counter() -> None:
+    """Check if the current call is marked as user and increment accordingly."""
+    if getattr(_llm_call_counter, "_next_is_user", False):
+        _llm_call_counter.user = getattr(_llm_call_counter, "user", 0) + 1
+        _llm_call_counter._next_is_user = False
+
 
 # litellm._turn_on_debug()
 
@@ -234,6 +274,9 @@ def generate(
         # print(e)
         logger.error(e)
         raise e
+    # Track LLM calls
+    _increment_llm_call_counter()
+    _check_and_increment_user_counter()
     cost = get_response_cost(response)
     usage = get_response_usage(response)
     response = response.choices[0]
@@ -314,4 +357,22 @@ def get_token_usage(messages: list[Message]) -> dict:
             continue
         usage["completion_tokens"] += message.usage["completion_tokens"]
         usage["prompt_tokens"] += message.usage["prompt_tokens"]
+    return usage
+
+
+def get_agent_token_usage(messages: list[Message]) -> dict:
+    """
+    Get the token usage for the agent only (excludes user simulator).
+    Returns dict with 'completion_tokens', 'prompt_tokens', 'total_tokens'.
+    """
+    usage = {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+    for message in messages:
+        if not isinstance(message, AssistantMessage):
+            continue
+        if message.usage is None:
+            logger.warning(f"AssistantMessage has no usage: {message.content}")
+            continue
+        usage["completion_tokens"] += message.usage.get("completion_tokens", 0)
+        usage["prompt_tokens"] += message.usage.get("prompt_tokens", 0)
+    usage["total_tokens"] = usage["completion_tokens"] + usage["prompt_tokens"]
     return usage

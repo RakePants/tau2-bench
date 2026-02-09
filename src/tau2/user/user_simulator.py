@@ -21,7 +21,7 @@ from tau2.user.base import (
     is_valid_user_history_message,
 )
 from tau2.utils import DATA_DIR
-from tau2.utils.llm_utils import generate
+from tau2.utils.llm_utils import generate, mark_next_generate_as_user
 
 GLOBAL_USER_SIM_GUIDELINES_DIR = DATA_DIR / "tau2" / "user_simulator"
 
@@ -155,6 +155,7 @@ class UserSimulator(BaseUser):
         messages = state.system_messages + state.flip_roles()
 
         # Generate response
+        mark_next_generate_as_user()
         assistant_message = generate(
             model=self.llm,
             messages=messages,

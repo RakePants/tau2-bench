@@ -355,6 +355,41 @@ class SimulationRun(BaseModel):
     seed: Optional[int] = Field(
         description="Seed used for the simulation.", default=None
     )
+    # --- Resource metrics ---
+    agent_total_tokens: Optional[int] = Field(
+        description="Total tokens (prompt + completion) consumed by the agent.",
+        default=None,
+    )
+    agent_completion_tokens: Optional[int] = Field(
+        description="Completion tokens consumed by the agent.",
+        default=None,
+    )
+    agent_prompt_tokens: Optional[int] = Field(
+        description="Prompt tokens consumed by the agent.",
+        default=None,
+    )
+    agent_llm_calls: Optional[int] = Field(
+        description="Number of LLM generate() calls made by the agent (excludes user simulator).",
+        default=None,
+    )
+    num_user_turns: Optional[int] = Field(
+        description="Number of user messages in the trajectory (dialogue turns).",
+        default=None,
+    )
+    num_tool_calls: Optional[int] = Field(
+        description="Number of tool call results (ToolMessage) in the trajectory.",
+        default=None,
+    )
+    agent_response_times: Optional[list[float]] = Field(
+        description="Wall-clock durations (seconds) of each agent response segment "
+        "(from receiving user message to returning a text response to the user, "
+        "including any intermediate tool call cycles). Excludes user simulator time.",
+        default=None,
+    )
+    agent_active_time: Optional[float] = Field(
+        description="Total agent active time (seconds), excluding user wait time.",
+        default=None,
+    )
 
 
 class Results(BaseModel):
@@ -435,6 +470,15 @@ class Results(BaseModel):
                 "termination_reason": sim.termination_reason,
                 "duration": sim.duration,
                 "num_messages": len(sim.messages),
+                # Resource metrics
+                "agent_total_tokens": sim.agent_total_tokens,
+                "agent_completion_tokens": sim.agent_completion_tokens,
+                "agent_prompt_tokens": sim.agent_prompt_tokens,
+                "agent_llm_calls": sim.agent_llm_calls,
+                "num_user_turns": sim.num_user_turns,
+                "num_tool_calls": sim.num_tool_calls,
+                "agent_active_time": sim.agent_active_time,
+                # Info fields
                 "info_git_commit": self.info.git_commit,
                 "info_seed": self.info.seed,
                 "info_num_trials": self.info.num_trials,

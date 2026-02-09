@@ -11,7 +11,7 @@ Mas3Agent:
 - Each agent also receives their specialized troubleshooting guide
 
 Usage:
-    from tau2.agent.paper_multi_agent import Mas3Agent
+    from tau2.agent.mas_3 import Mas3Agent
     
     agent = Mas3Agent(tools=tools, domain_policy=policy, llm="gpt-4")
 """

@@ -403,14 +403,10 @@ class Orchestrator:
         # Reset LLM call counter for this thread
         reset_llm_call_counter()
         self.initialize()
-        # Start tracking agent work from the beginning
-        # (agent sends first message, then user responds, then agent works)
-        if self.to_role == Role.USER:
-            # Agent has already produced first message, work segment started at init
-            self._agent_response_start = time.perf_counter()
-        elif self.to_role == Role.ENV:
-            # Solo mode: agent made tool call, agent is working
-            self._agent_response_start = time.perf_counter()
+        # NOTE: We do NOT start _agent_response_start here.
+        # The canned "Hi! How can I help you?" is not real agent work.
+        # Tracking begins in step() when agent actually receives a user
+        # message and starts generating a response.
         while not self.done:
             self.step()
             # Checking for maximum steps and errors only if the last message is not to the environment
@@ -423,11 +419,10 @@ class Orchestrator:
                 self.done = True
                 self.termination_reason = TerminationReason.TOO_MANY_ERRORS
 
-        # Close any open agent work segment
-        if self._agent_response_start is not None:
-            segment = time.perf_counter() - self._agent_response_start
-            self._agent_response_times.append(segment)
-            self._agent_response_start = None
+        # Discard any open agent segment — it means the simulation ended
+        # before the agent returned a text response (e.g. max_steps hit
+        # mid-cycle), so there is no completed response to record.
+        self._agent_response_start = None
 
         # Send stop signal to the agent, user, and environment
         has_error = self.termination_reason in [
